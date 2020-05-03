@@ -23,26 +23,25 @@ app.post('/posts', (req, res) => {
     res.json(data) // vrati podatke za referencu
 })
 
-// 403 
+// 402
 // listanje postova iz monga
 app.get('/posts', async (req, res) => {
-    let query=req.query;
-
-    let selekcija={}
-    if(query.createdBy){
-      selekcija.createdBy  = new RegExp('^' + query.createdBy)
-    } 
-    console.log("selekcija", selekcija)
-
+    console.log(req.query);
+    var d = new Date();
+    let mjeseci= d.setMonth(d.getMonth() - 6) 
     
     let db = await connect()
-    let cursor = await db.collection("posts").find(selekcija).sort({postedAt: -1})
+    let cursor = await db.collection("posts").find({ postedAt: { $gte: mjeseci.toString() } }).sort({postedAt: -1})
     let results = await cursor.toArray()
-console.log(results)
-  
-    res.json(results) // saljemo podatke kao json na frontend
-    
+
+    results.forEach(e => {
+        e.id = e._id
+        delete e._id
+    })
+
+    res.json(results)
 })
+
 
 
 // LISTANJE POSTOVA nije iz mongo baze nego iz memory storage
